@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Share your experience</title>
+<style>
+:root{--bg:#f7f5f0;--surface:#fff;--ink:#1d2a26;--muted:#5d6b66;--line:#d9d6cc;--brand:#1f6f5c;--brand-ink:#fff;--star:#e0a526;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121816;--surface:#1b2420;--ink:#eef2ef;--muted:#a3b0aa;--line:#2f3b36;--brand-ink:#0d1512}}
+*{box-sizing:border-box}
+html{height:100%}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:"Segoe UI",system-ui,-apple-system,Roboto,sans-serif;font-size:17px;line-height:1.5}
+main{max-width:480px;margin:0 auto;padding:28px 18px 40px}
+h1{font-family:Georgia,"Times New Roman",serif;font-size:1.9rem;line-height:1.2;margin:0 0 6px;font-weight:700}
+.sub{color:var(--muted);margin:0 0 26px}
+h2{font-size:1.02rem;margin:26px 0 10px;font-weight:650}
+.stars{display:flex;gap:6px}
+.star{flex:1;min-height:56px;font-size:2rem;line-height:1;background:var(--surface);border:1.5px solid var(--line);border-radius:12px;color:var(--line);cursor:pointer}
+.star.on{color:var(--star);border-color:var(--star)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{min-height:48px;padding:0 16px;border-radius:24px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+input,textarea{width:100%;font:inherit;color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:12px 14px}
+textarea{min-height:140px;resize:vertical}
+button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
+.btn{display:block;width:100%;min-height:54px;margin-top:16px;border:0;border-radius:14px;background:var(--brand);color:var(--brand-ink);font:inherit;font-weight:650;cursor:pointer;text-align:center;text-decoration:none;line-height:54px;padding:0}
+.btn.alt{background:transparent;color:var(--brand);border:1.5px solid var(--brand);line-height:51px}
+.note{color:var(--muted);font-size:.9rem;margin:8px 0 0}
+#draftBox{display:none;margin-top:6px}
+#draftBox.show{display:block}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:12px;opacity:0;pointer-events:none;transition:.25s;max-width:90%;text-align:center;font-size:.95rem}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+footer{margin-top:30px;color:var(--muted);font-size:.85rem;text-align:center}
+.lang{float:right;font:inherit;font-size:.9rem;background:none;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:6px 10px;cursor:pointer}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+<button class="lang" id="langBtn" type="button" hidden></button>
+<h1 id="title"></h1>
+<p class="sub" id="sub"></p>
+
+<h2 id="hRate"></h2>
+<div class="stars" id="stars" role="radiogroup"></div>
+
+<h2 id="hTags"></h2>
+<div class="chips" id="chips"></div>
+
+<h2 id="hNote"></h2>
+<input id="note" type="text" maxlength="120">
+
+<button class="btn" id="makeBtn" type="button"></button>
+
+<div id="draftBox">
+  <h2 id="hDraft"></h2>
+  <textarea id="draft" aria-labelledby="hDraft"></textarea>
+  <p class="note" id="draftNote"></p>
+  <button class="btn alt" id="againBtn" type="button"></button>
+  <button class="btn" id="copyBtn" type="button"></button>
+</div>
+
+<a class="btn alt" id="plainLink" target="_blank" rel="noopener"></a>
+<footer id="foot"></footer>
+</main>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+/* ===== EDIT ONLY THIS SECTION FOR EACH NEW CLIENT ===== */
+const CONFIG = {
+  businessName: "Sample Cafe",
+  businessType: "cafe",
+  reviewLink: "https://search.google.com/local/writereview?placeid=ChIJt62F1qwTrjsRzahuMZAxxYM",
+  trackUrl:  "https://script.google.com/macros/s/AKfycbyyCA1qZoXPiF_LlfdqRFp-MMXsBll4Ildzk8TXttgfPY7uoVanrLFDo2mmDrPpx1Ck/exec",  // Apps Script web app URL (see setup steps)
+  brandColor: "#1f6f5c",
+  language: "en",           // "en" or "hi"; set both below to show a toggle
+  languages: ["en", "hi"],
+  // Tags per business type: [id, label_en, label_hi, positive phrases, improve phrases]
+  tags: [
+    ["coffee","Coffee","कॉफ़ी",["The coffee was really good","Loved the coffee here","Great coffee, well made","The coffee had a rich, smooth flavour","Really enjoyed my coffee","The coffee was freshly made and hot","The coffee was just the way I like it"],["The coffee could be better","The coffee was average for me"]],
+    ["food","Food","खाना",["The food was tasty and fresh","Enjoyed the food","Good food at a fair portion","Everything we ordered was fresh","The food came out hot and flavourful","Tasty food, nicely cooked","The food was well presented"],["The food needs some improvement","The food was okay but not special"]],
+    ["service","Service","सर्विस",["The staff were friendly and quick","Service was warm and attentive","The team made us feel welcome","The staff were polite and helpful","Quick service with a friendly smile","The staff went out of their way to help","We felt well looked after by the team"],["Service could be faster","Service was a bit slow when it got busy"]],
+    ["ambience","Ambience","माहौल",["Lovely, relaxed atmosphere","A cosy place to sit and chat","Great ambience","A nice vibe, perfect to unwind","A calm and pleasant setting","Lovely decor and a welcoming feel"],["The ambience could be improved","The place felt a bit noisy"]],
+    ["clean","Cleanliness","सफ़ाई",["The place was clean and tidy","Very clean and well kept","Spotless tables and a tidy space","Hygiene was clearly a priority"],["Cleanliness could be better","Some areas could be cleaner"]],
+    ["value","Value for money","पैसा वसूल",["Good value for the price","Prices felt fair","Worth every rupee","Reasonable prices for the quality"],["Prices felt a bit high","It felt slightly expensive for what we got"]],
+    ["seating","Seating","बैठने की जगह",["Comfortable seating","Plenty of space to sit","Easy to find a good seat","Comfortable seats with room to relax"],["Seating was a bit limited","Seating felt a little cramped"]]
+  ]
+};
+const TEXT = {
+  en:{title:"Thanks for visiting!",sub:"Your honest feedback helps others find us.",rate:"How was your visit?",tags:"What stood out? (tap any)",note:"Anything specific to mention? (optional)",notePh:"e.g. what you ordered",make:"Help me write it",again:"Try another version",draft:"Your review draft",draftNote:"This is just a starting point. Edit it so it reflects your real experience.",copy:"Copy & open Google Review",plain:"Open Google Review",foot:"Reviews should reflect your genuine experience.",toast:"Copied! Paste it in the review box and tap Post",toastFail:"Select the text, copy it, then paste it in Google",pickStar:"Please choose a star rating first",lang:"हिन्दी",
+    open:{4:["Had a great visit to","Really enjoyed our time at","A lovely experience at","Spent a lovely time at","Happy with our visit to","Glad we stopped by","Had a really nice time at","Pleasantly impressed by"],3:["Our visit to","Went to","Stopped by","Had an okay visit to","Visited","Tried out"],2:["Visited","Went to","Tried","Had a mixed visit to","Stopped by"]},
+    close:{pos:["Would happily come back.","Definitely recommend.","Will visit again.","Looking forward to coming back.","Recommended to friends and family.","Worth a visit.","A place I'd return to."],mid:["Might give it another try.","Some good points here.","There is potential here.","Would visit again to see how it goes."],neg:["Hope these points help the team improve.","Sharing this so the team can improve.","Hoping the next visit is better."]},
+    and:" and ",improve:"Something to improve",withNote:"I had "},
+  hi:{title:"आने के लिए धन्यवाद!",sub:"आपकी सच्ची राय दूसरों की मदद करती है।",rate:"आपकी विज़िट कैसी रही?",tags:"क्या अच्छा लगा? (चुनें)",note:"कुछ खास बताना चाहें? (वैकल्पिक)",notePh:"जैसे आपने क्या ऑर्डर किया",make:"लिखने में मदद करें",again:"दूसरा वर्ज़न दिखाएँ",draft:"आपका रिव्यू ड्राफ़्ट",draftNote:"यह सिर्फ़ शुरुआत है। इसे अपने असली अनुभव के अनुसार बदलें।",copy:"कॉपी करें और Google रिव्यू खोलें",plain:"Google रिव्यू खोलें",foot:"रिव्यू आपके असली अनुभव पर आधारित होने चाहिए।",toast:"कॉपी हो गया! रिव्यू बॉक्स में पेस्ट करके Post दबाएँ",toastFail:"टेक्स्ट चुनकर कॉपी करें, फिर Google में पेस्ट करें",pickStar:"पहले स्टार रेटिंग चुनें",lang:"English",
+    open:{4:["यहाँ आकर अच्छा लगा।","हमारी विज़िट शानदार रही।"],3:["हम यहाँ गए थे।","यहाँ आना हुआ।"],2:["हम यहाँ गए थे।"]},
+    close:{pos:["दोबारा ज़रूर आएँगे।","सबको सुझाएँगे।"],mid:["शायद फिर आएँ।"],neg:["उम्मीद है टीम इन बातों पर ध्यान देगी।"]},
+    and:" और ",improve:"सुधार की गुंजाइश",withNote:"मैंने लिया: "}
+};
+function track(event){
+  /* Sends only: business name, event name, language. No personal data. Silently skipped until trackUrl is set. */
+  if(!CONFIG.trackUrl||CONFIG.trackUrl.indexOf("YOUR_SCRIPT_ID")>-1)return;
+  try{
+    fetch(CONFIG.trackUrl,{method:"POST",mode:"no-cors",keepalive:true,headers:{"Content-Type":"text/plain"},body:JSON.stringify({client:CONFIG.businessName,event:event,lang:lang})}).catch(function(){});
+  }catch(e){}
+}
+/* ===== END CONFIG ===== */
+
+const $=id=>document.getElementById(id);
+let lang=CONFIG.language, rating=0, picked=new Set();
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+document.documentElement.style.setProperty("--brand",CONFIG.brandColor);
+
+function render(){
+  const t=TEXT[lang];
+  document.documentElement.lang=lang;
+  document.title=CONFIG.businessName;
+  $("title").textContent=t.title+" "+CONFIG.businessName;
+  $("sub").textContent=t.sub;
+  $("hRate").textContent=t.rate; $("hTags").textContent=t.tags; $("hNote").textContent=t.note;
+  $("note").placeholder=t.notePh; $("makeBtn").textContent=t.make; $("againBtn").textContent=t.again;
+  $("hDraft").textContent=t.draft; $("draftNote").textContent=t.draftNote;
+  $("copyBtn").textContent=t.copy; $("plainLink").textContent=t.plain; $("plainLink").href=CONFIG.reviewLink;
+  $("foot").textContent=t.foot;
+  const lb=$("langBtn"); lb.hidden=CONFIG.languages.length<2; lb.textContent=t.lang;
+  $("stars").innerHTML="";
+  for(let i=1;i<=5;i++){const b=document.createElement("button");b.type="button";b.className="star"+(i<=rating?" on":"");b.textContent="★";b.setAttribute("role","radio");b.setAttribute("aria-checked",i===rating);b.setAttribute("aria-label",i+" / 5");b.onclick=()=>{rating=i;render()};$("stars").appendChild(b)}
+  $("chips").innerHTML="";
+  const all=CONFIG.tags.map(x=>[x[0],lang==="hi"?x[2]:x[1]]).concat([["improve",t.improve]]);
+  all.forEach(([id,label])=>{const b=document.createElement("button");b.type="button";b.className="chip";b.textContent=label;b.setAttribute("aria-pressed",picked.has(id));b.onclick=()=>{picked.has(id)?picked.delete(id):picked.add(id);b.setAttribute("aria-pressed",picked.has(id))};$("chips").appendChild(b)});
+}
+
+function toast(msg){const e=$("toast");e.textContent=msg;e.classList.add("show");setTimeout(()=>e.classList.remove("show"),3200)}
+
+function makeDraft(){
+  const t=TEXT[lang];
+  if(!rating){toast(t.pickStar);return}
+  const good=[],bad=[];
+  CONFIG.tags.forEach(x=>{if(picked.has(x[0])){good.push(pick(x[3]));if(x[4].length&&rating<=3)bad.push(pick(x[4]))}});
+  let s=[];
+  const band=rating>=4?4:rating;
+  good.sort(()=>Math.random()-.5); bad.sort(()=>Math.random()-.5);
+  s.push(pick(t.open[band])+(lang==="en"?" "+CONFIG.businessName+".":""));
+  if(rating>=4&&good.length) s.push(good.slice(0,2+Math.floor(Math.random()*2)).join(pick([". ",". ","! "]))+".");
+  else if(rating===3){if(good.length)s.push(good.slice(0,2).join(". ")+".");if(picked.has("improve")||bad.length)s.push(bad.slice(0,2).join(". ")+".")}
+  else if(rating<=2){if(bad.length)s.push(bad.slice(0,2).join(". ")+".");else if(picked.has("improve"))s.push(t.improve+".")}
+  const n=$("note").value.trim();
+  if(n) s.push(t.withNote+n+(lang==="en"?".":""));
+  if(Math.random()>0.2) s.push(pick(rating>=4?t.close.pos:rating===3?t.close.mid:t.close.neg));
+  $("draft").value=s.filter(x=>x&&x!==".").join(" ").replace(/\.\./g,".");
+  $("draftBox").classList.add("show");
+  $("draft").focus();
+}
+
+async function copyAndOpen(){
+  const t=TEXT[lang], txt=$("draft").value; track("copy_open");
+  let ok=false;
+  try{await navigator.clipboard.writeText(txt);ok=true}catch(e){
+    try{$("draft").select();ok=document.execCommand("copy")}catch(e2){}
+  }
+  toast(ok?t.toast:t.toastFail);
+  setTimeout(()=>window.open(CONFIG.reviewLink,"_blank","noopener"),ok?900:1800);
+}
+
+$("makeBtn").onclick=makeDraft;
+$("againBtn").onclick=makeDraft;
+$("copyBtn").onclick=copyAndOpen;
+$("plainLink").addEventListener("click",()=>track("open_plain"));
+$("langBtn").onclick=()=>{lang=lang==="en"?"hi":"en";render()};
+render(); track("page_view");
+</script>
+</body>
+</html>
